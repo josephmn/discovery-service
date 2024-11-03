@@ -1,0 +1,14 @@
+#server:
+#  port: 8761
+spring:
+  application:
+    name: discovery-service
+    version: "@project.version@"
+  profiles:
+    active: prod
+  cloud:
+    config:
+      uri: ${CONFIG_SERVER:http://localhost:8888}
+  output:
+    ansi:
+      enabled: ALWAYS
