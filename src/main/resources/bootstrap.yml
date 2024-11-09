@@ -20,3 +20,5 @@ eureka:
     fetch-registry: false
   instance:
     hostname: ${EUREKA_INSTANCE:localhost}
+  server:
+    eviction-interval-timer-in-ms: 5000  # Intervalo de expulsión en milisegundos (cada 5 segundos)
