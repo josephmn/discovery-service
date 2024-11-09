@@ -9,6 +9,14 @@ spring:
   cloud:
     config:
       uri: ${CONFIG_SERVER:http://localhost:8888}
+      fail-fast: true  # Habilita el fail-fast si quieres que falle rápido si no puede conectar
   output:
     ansi:
       enabled: ALWAYS
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  instance:
+    hostname: localhost
