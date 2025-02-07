@@ -9,7 +9,7 @@ pipeline {
     }
 
     environment {
-        NAME_APP = 'discovery-service'
+        NAME_APP = 'discovery-service-dev'
         SCANNER_HOME = tool 'sonar-scanner'
         CONTAINER_PORT = '8761'
         HOST_PORT = '8761'
@@ -173,7 +173,7 @@ pipeline {
 
                     def name = NAME_APP.tokenize('-')[0..-2].join('-')
                     bat """
-                        echo "=========> Construyendo nueva imagen con versión ${version}..."
+                        echo "=========> Construyendo nueva imagen con version ${version}..."
                         docker build --build-arg NAME_APP=${name} --build-arg JAR_VERSION=${version} -t ${NAME_APP}:${version} .
 
                         echo "=========> Desplegando el contenedor: ${NAME_APP}..."

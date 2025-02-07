@@ -9,9 +9,11 @@ RUN mvn package -DskipTests
 # Etapa final
 FROM openjdk:17-jdk-slim
 WORKDIR /app
-COPY --from=build /app/target/discovery-service-1.0.0.jar ./discovery-service-1.0.0.jar
+ARG NAME_APP
+ARG JAR_VERSION
+COPY --from=build /app/target/${NAME_APP}-${JAR_VERSION}.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "discovery-service-1.0.0.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
 # ENTRYPOINT ["java", "-jar", "discovery-service-1.0.0.jar", "--spring.profiles.active=dev"]
 
 # Construir imagen docker
