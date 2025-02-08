@@ -14,7 +14,8 @@ pipeline {
         CONTAINER_PORT = '8761'
         HOST_PORT = '8761'
         NETWORK = 'azure-net-dev'
-        CONFIG_SERVER = "localhost"
+        LOCAL_CONFIG_SERVER = 'localhost'
+        CONFIG_SERVER = "config-server-dev"
         PORT_CONFIG_SERVER = "8886"
     }
 
@@ -71,7 +72,7 @@ pipeline {
             steps {
                 echo "######################## : ======> EJECUTANDO BUILD APPLICATION MAVEN..."
                 // Usar 'bat' para ejecutar comandos en Windows, para Linux usar 'sh'
-                bat "mvn clean install -DCONFIG_SERVER=http://${CONFIG_SERVER}:${PORT_CONFIG_SERVER}"
+                bat "mvn clean install -DCONFIG_SERVER=http://${LOCAL_CONFIG_SERVER}:${PORT_CONFIG_SERVER}"
             }
         }
 
@@ -80,8 +81,8 @@ pipeline {
                 expression { params.DOCKER }
             }
             steps {
+                echo "######################## : ======> EJECUTANDO CREACION DE RED PARA DOCKER..."
                 script {
-                    echo "######################## : ======> EJECUTANDO CREACION DE RED PARA DOCKER..."
                     def networkExists = bat(
                             script: "docker network ls | findstr ${NETWORK}",
                             returnStatus: true
@@ -101,19 +102,13 @@ pipeline {
                 expression { params.DOCKER }
             }
             steps {
+                echo "######################## : ======> EJECUTANDO DOCKER BUILD AND RUN..."
                 script {
-
-                    def localhost = "localhost"
-                    def configServer = "config-server-dev"
-                    def portConfigServer = "8886"
-
-                    echo "######################## : ======> EJECUTANDO DOCKER BUILD AND RUN..."
-
                     echo "=========> Verificando que el config-server esté en ejecución..."
                     // Verificar si el config-server está en ejecución
                     bat """
                     for /L %%i in (1,1,30) do (
-                        powershell -Command "(Invoke-WebRequest -Uri http://${localhost}:${portConfigServer}/actuator/health -UseBasicParsing).StatusCode" && exit || timeout 5
+                        powershell -Command "(Invoke-WebRequest -Uri http://${LOCAL_CONFIG_SERVER}:${PORT_CONFIG_SERVER}/actuator/health -UseBasicParsing).StatusCode" && exit || timeout 5
                     )
                     """
 
@@ -175,9 +170,12 @@ pipeline {
                     bat """
                         echo "=========> Construyendo nueva imagen con version ${version}..."
                         docker build --build-arg NAME_APP=${name} --build-arg JAR_VERSION=${version} -t ${NAME_APP}:${version} .
-
+                    """
+                    bat """
                         echo "=========> Desplegando el contenedor: ${NAME_APP}..."
-                        docker run -d --name ${NAME_APP} -p ${HOST_PORT}:${CONTAINER_PORT} --network=${NETWORK} --env CONFIG_SERVER=http://${configServer}:${portConfigServer} ${NAME_APP}:${version}
+                        docker run -d --name ${NAME_APP} -p ${HOST_PORT}:${CONTAINER_PORT} --network=${NETWORK} ^
+                        --env CONFIG_SERVER=http://${CONFIG_SERVER}:${PORT_CONFIG_SERVER} ^
+                        ${NAME_APP}:${version}
                     """
                 }
             }

@@ -9,11 +9,13 @@ pipeline {
     }
 
     environment {
-        NAME_APP = 'config-server'
-        NAME_IMG_DOCKER = 'config-server-pro'
-        CONTAINER_PORT = '8888'
-        HOST_PORT = '8888'
+        NAME_APP = 'discovery-service-pro'
+        CONTAINER_PORT = '8761'
+        HOST_PORT = '8761'
         NETWORK = 'azure-net'
+        LOCAL_CONFIG_SERVER = 'localhost'
+        CONFIG_SERVER = "config-server-pro"
+        PORT_CONFIG_SERVER = "8888"
         GIT_CREDENTIALS = credentials('PATH_Jenkins')
         GIT_COMMITTER_NAME = 'josephmn'
         GIT_COMMITTER_EMAIL = 'josephcarlos.jcmn@gmail.com'
@@ -131,7 +133,7 @@ pipeline {
                     git checkout ${RELEASE_TAG_NAME}
                 """
 
-                bat 'mvn clean install'
+                bat "mvn clean install -DCONFIG_SERVER=http://${LOCAL_CONFIG_SERVER}:${PORT_CONFIG_SERVER}"
             }
         }
 
@@ -163,6 +165,14 @@ pipeline {
             steps {
                 echo "######################## : ======> EJECUTANDO DOCKER BUILD AND RUN..."
                 script {
+                    echo "=========> Verificando que el config-server esté en ejecución..."
+                    // Verificar si el config-server está en ejecución
+                    bat """
+                    for /L %%i in (1,1,30) do (
+                        powershell -Command "(Invoke-WebRequest -Uri http://${LOCAL_CONFIG_SERVER}:${PORT_CONFIG_SERVER}/actuator/health -UseBasicParsing).StatusCode" && exit || timeout 5
+                    )
+                    """
+
                     echo "=========> VERSION RC: ${NEW_VERSION}"
                     echo "=========> APLICATIVO + VERSION: ${NAME_APP}:${NEW_VERSION}"
                     // Usar la versión capturada para los comandos Docker
@@ -175,7 +185,7 @@ pipeline {
 
                     // Verificar si existe la imagen
                     def imageExists = bat(
-                            script: "@docker images ${NAME_IMG_DOCKER}:${NEW_VERSION} --format '{{.Repository}}:{{.Tag}}' | findstr /i \"${NAME_IMG_DOCKER}:${NEW_VERSION}\"",
+                            script: "@docker images ${NAME_APP}:${NEW_VERSION} --format '{{.Repository}}:{{.Tag}}' | findstr /i \"${NAME_APP}:${NEW_VERSION}\"",
                             returnStatus: true
                     ) == 0
 
@@ -189,8 +199,8 @@ pipeline {
                         }
 
                         if (imageExists) {
-                            echo "=========> Eliminando imagen existente: ${NAME_IMG_DOCKER}"
-                            bat "docker rmi ${NAME_IMG_DOCKER}:${NEW_VERSION}"
+                            echo "=========> Eliminando imagen existente: ${NAME_APP}"
+                            bat "docker rmi ${NAME_APP}:${NEW_VERSION}"
                         }
                     } else {
                         echo "=========> No se encontraron recursos existentes, procediendo con el despliegue..."
@@ -199,12 +209,16 @@ pipeline {
                     echo "=========> VERSION A DESPLEGAR: ${NEW_VERSION}"
                     echo "=========> APLICATIVO + VERSION: ${NAME_APP}:${NEW_VERSION}"
 
+                    def name = NAME_APP.tokenize('-')[0..-2].join('-')
                     bat """
                         echo "=========> Construyendo nueva imagen con version ${NEW_VERSION}..."
-                        docker build --build-arg NAME_APP=${NAME_APP} --build-arg JAR_VERSION=${NEW_VERSION} -t ${NAME_IMG_DOCKER}:${NEW_VERSION} .
-
+                        docker build --build-arg NAME_APP=${NAME_APP} --build-arg JAR_VERSION=${NEW_VERSION} -t ${NAME_APP}:${NEW_VERSION} .
+                    """
+                    bat """
                         echo "=========> Desplegando el contenedor: ${NAME_APP}..."
-                        docker run -d --name ${NAME_APP} -p ${HOST_PORT}:${CONTAINER_PORT} --network=${NETWORK} --env SERVER_PORT=${HOST_PORT} ${NAME_IMG_DOCKER}:${NEW_VERSION}
+                        docker run -d --name ${NAME_APP} -p ${HOST_PORT}:${CONTAINER_PORT} --network=${NETWORK} ^
+                        --env CONFIG_SERVER=http://${CONFIG_SERVER}:${PORT_CONFIG_SERVER} ^
+                        ${NAME_APP}:${NEW_VERSION}
                     """
                 }
             }
