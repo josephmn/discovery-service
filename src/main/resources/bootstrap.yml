@@ -20,3 +20,8 @@ eureka:
     hostname: ${EUREKA_INSTANCE:localhost}
   server:
     eviction-interval-timer-in-ms: 5000  # Intervalo de expulsión en milisegundos (cada 5 segundos)
+
+created:
+  by: Joseph Magallanes
+  email: josephcarlos.jcmn@gmail.com
+  date: 2025-08-15
