@@ -1,0 +1,3 @@
+spring:
+  banner:
+    location: classpath:banner/banner-cert.txt
