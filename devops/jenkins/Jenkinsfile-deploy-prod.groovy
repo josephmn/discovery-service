@@ -232,7 +232,7 @@ pipeline {
                     def name = NAME_APP.tokenize('-')[0..-2].join('-')
                     bat """
                         echo "=========> Construyendo nueva imagen con version ${NEW_VERSION}..."
-                        docker build --build-arg NAME_APP=${NAME_APP} --build-arg JAR_VERSION=${NEW_VERSION} -t ${NAME_APP}:${NEW_VERSION} .
+                        docker build --build-arg NAME_APP=${name} --build-arg JAR_VERSION=${NEW_VERSION} -t ${NAME_APP}:${NEW_VERSION} .
                     """
                     bat """
                         echo "=========> Desplegando el contenedor: ${NAME_APP}..."
