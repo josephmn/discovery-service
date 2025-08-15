@@ -15,7 +15,6 @@ pipeline {
         HOST_PORT = '8759'
         NETWORK = 'azure-net-dev'
         SONAR_TOKEN = credentials('sonar-token')
-        LOCAL_CONFIG_SERVER = 'localhost'
         CONFIG_SERVER = "config-server-dev"
         PORT_CONFIG_SERVER = "8886"
     }
@@ -45,9 +44,9 @@ pipeline {
                         "${SCANNER_HOME}\\bin\\sonar-scanner" ^
                         -Dsonar.url=http://localhost:9000/ ^
                         -Dsonar.login=%SONAR_TOKEN% ^
-                        -Dsonar.projectName=config-server ^
+                        -Dsonar.projectName=discovery-service ^
                         -Dsonar.java.binaries=. ^
-                        -Dsonar.projectKey=config-server
+                        -Dsonar.projectKey=discovery-service
                     """
                 }
             }
@@ -74,7 +73,7 @@ pipeline {
                 bat """
                     mvn clean install \
                     -Dspring-boot.run.profiles=dev \
-                    -DCONFIG_SERVER=http://${LOCAL_CONFIG_SERVER}:${PORT_CONFIG_SERVER}
+                    -DCONFIG_SERVER=http://localhost:${PORT_CONFIG_SERVER}
                 """
             }
         }
@@ -111,7 +110,7 @@ pipeline {
                     // Verificar si el config-server está en ejecución
                     bat """
                     for /L %%i in (1,1,30) do (
-                        powershell -Command "(Invoke-WebRequest -Uri http://${LOCAL_CONFIG_SERVER}:${PORT_CONFIG_SERVER}/actuator/health -UseBasicParsing).StatusCode" && exit || timeout 5
+                        powershell -Command "(Invoke-WebRequest -Uri http://localhost:${PORT_CONFIG_SERVER}/actuator/health -UseBasicParsing).StatusCode" && exit || timeout 5
                     )
                     """
 

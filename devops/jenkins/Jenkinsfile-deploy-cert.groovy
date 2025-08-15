@@ -13,7 +13,6 @@ pipeline {
         CONTAINER_PORT = '8760'
         HOST_PORT = '8760'
         NETWORK = 'azure-net-cer'
-        LOCAL_CONFIG_SERVER = 'localhost'
         CONFIG_SERVER = "config-server-cer"
         PORT_CONFIG_SERVER = "8887"
         GIT_CREDENTIALS = credentials('github-token')
@@ -57,7 +56,7 @@ pipeline {
                     // Usar 'bat' para ejecutar comandos en Windows, para Linux usar 'sh'
                     bat """
                         mvn clean compile \
-                        -DCONFIG_SERVER=http://${LOCAL_CONFIG_SERVER}:${PORT_CONFIG_SERVER}
+                        -DCONFIG_SERVER=http://localhost:${PORT_CONFIG_SERVER}
                     """
                 }
             }
@@ -245,7 +244,7 @@ pipeline {
                     // Verificar si el config-server está en ejecución
                     bat """
                     for /L %%i in (1,1,30) do (
-                        powershell -Command "(Invoke-WebRequest -Uri http://${LOCAL_CONFIG_SERVER}:${PORT_CONFIG_SERVER}/actuator/health -UseBasicParsing).StatusCode" && exit || timeout 5
+                        powershell -Command "(Invoke-WebRequest -Uri http://localhost:${PORT_CONFIG_SERVER}/actuator/health -UseBasicParsing).StatusCode" && exit || timeout 5
                     )
                     """
 
