@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>api.azure</groupId>
 	<artifactId>discovery-service</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>discovery-service</name>
 	<description>Project for Discovery Service</description>
     <url>https://github.com/josephmn/discovery-service.git</url>
