@@ -105,7 +105,7 @@ pipeline {
                         git config user.name "${GIT_COMMITTER_NAME}"
 
                         REM Configurar remote con token para HTTPS
-                        git remote set-url origin https://%GIT_CREDENTIALS%@github.com/josephmn/config-server.git
+                        git remote set-url origin https://%GIT_CREDENTIALS%@github.com/josephmn/discovery-service.git
                     """
 
                     echo "=========> Generar siguiente SNAPSHOT..."
