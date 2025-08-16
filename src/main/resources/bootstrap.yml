@@ -18,6 +18,8 @@ eureka:
   client:
     register-with-eureka: false
     fetch-registry: false
+  datacenter: dc-eureka-${SPRING_PROFILES_ACTIVE:dev}
+  environment: ${SPRING_PROFILES_ACTIVE:dev}
   instance:
     hostname: ${EUREKA_INSTANCE:localhost}
   server:
